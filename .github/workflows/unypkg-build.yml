@@ -1,0 +1,21 @@
+name: Build package for unypkg
+
+on: workflow_dispatch
+
+env:
+  UNY_AUTO_PAT: ${{ secrets.UNY_AUTO_PAT }}
+  GH_TOKEN: ${{ secrets.UNY_AUTO_PAT }}
+
+jobs:
+  build-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Save variables to files
+        run: |
+          echo "$UNY_AUTO_PAT" >UNY_AUTO_PAT
+          echo "$GH_TOKEN" >GH_TOKEN
+      - name: Run build script
+        run: |
+          chmod +x unypkg-*-build.sh
+          sudo ./unypkg-*-build.sh
