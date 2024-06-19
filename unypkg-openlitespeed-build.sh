@@ -11,7 +11,7 @@ set -vx
 wget -qO- uny.nu/pkg | bash -s buildsys
 
 ### Installing build dependencies
-unyp install curl cmake libaio go pcre2 expat libxml2 brotli boringssl \
+unyp install curl cmake libaio go pcre expat libxml2 brotli boringssl \
     libevent libbcrypt libinjection ip2location libmaxminddb udns lmdb yajl
 
 #pip3_bin=(/uny/pkg/python/*/bin/pip3)
