@@ -154,8 +154,6 @@ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DMOD_SECURITY="OFF" \
     -DMOD_LUA="OFF" ..
 
-/uny/pkg/"$pkgname"/"$pkgver"
-
 make -j"$(nproc)"
 
 cp build/src/openlitespeed dist/bin/
