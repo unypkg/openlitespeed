@@ -108,6 +108,9 @@ source /uny/git/unypkg/fn
 
 unset LD_RUN_PATH
 
+LDFLAGS="$(for libdir in /uny/pkg/*/*/lib; do echo -n "-L$libdir "; done) $LDFLAGS"
+export LDFLAGS
+
 function commentout {
     sed -i -e "s/$1/#$1/g" $2
 }
