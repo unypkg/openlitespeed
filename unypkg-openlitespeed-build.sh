@@ -169,6 +169,7 @@ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DMOD_LUA="OFF" ..
 
 make -j"$(nproc)"
+cd .. || exit
 
 cp build/src/openlitespeed dist/bin/
 if [ -e build/support/unmount_ns/unmount_ns ]; then
