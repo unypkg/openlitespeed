@@ -71,6 +71,8 @@ if [ -e lsquic ]; then
     fi
 fi
 
+git clone https://github.com/cloudflare/zlib.git zlib-cf
+
 cd /uny/sources || exit
 
 archiving_source
@@ -108,8 +110,17 @@ source /uny/git/unypkg/fn
 
 unset LD_RUN_PATH
 
-LDFLAGS="$(for libdir in /uny/pkg/*/*/lib; do echo -n "-L$libdir "; done) $LDFLAGS"
-export LDFLAGS
+mkdir -p /sources/third-party/lib
+#cp /uny/pkg/brotli/*/lib/*.a /sources/third-party/lib/
+find /uny/pkg/brotli/*/lib/ -name "*.a" -exec bash -c 'subs="$(basename $1)" cp "$1" "/sources/third-party/lib/${subs%.a}-static.a"' _ {} \;
+cp /uny/pkg/boringssl/*/lib/*.a /sources/third-party/lib/
+cp /uny/pkg/libxml2/*/lib/*.a /sources/third-party/lib/
+cp /uny/pkg/expat/*/lib/*.a /sources/third-party/lib/
+
+cd zlib-cf || exit
+CFLAGS="-fPIC -O3" ./configure --prefix=/sources/third-party --static
+make install
+cd .. || exit
 
 function commentout {
     sed -i -e "s/$1/#$1/g" $2
