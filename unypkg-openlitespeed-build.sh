@@ -112,7 +112,7 @@ unset LD_RUN_PATH
 
 mkdir -p /sources/third-party/lib
 #cp /uny/pkg/brotli/*/lib/*.a /sources/third-party/lib/
-find /uny/pkg/brotli/*/lib/ -name "*.a" -exec bash -c 'subs="$(basename $1)" cp "$1" "/sources/third-party/lib/${subs%.a}-static.a"' _ {} \;
+find /uny/pkg/brotli/*/lib/ -name "*.a" -exec bash -c 'subs="$(basename $1)"; cp "$1" "/sources/third-party/lib/${subs%.a}-static.a"' _ {} \;
 cp /uny/pkg/boringssl/*/lib/*.a /sources/third-party/lib/
 cp /uny/pkg/libxml2/*/lib/*.a /sources/third-party/lib/
 cp /uny/pkg/expat/*/lib/*.a /sources/third-party/lib/
