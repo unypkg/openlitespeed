@@ -82,7 +82,7 @@ archiving_source
 
 # unyc - run commands in uny's chroot environment
 # shellcheck disable=SC2154
-unyc <<"UNYEOF"
+unyc #<<"UNYEOF"
 set -vx
 source /uny/git/unypkg/fn
 
@@ -150,7 +150,8 @@ sed -i -e "s/-nodefaultlibs libstdc++.a//g" src/modules/lua/CMakeLists.txt
 commentout ls_llmq.c src/lsr/CMakeLists.txt
 commentout ls_llxq.c src/lsr/CMakeLists.txt
 
-cd src/modules/lsrecaptcha
+CUR_PATH="$(pwd)"
+cd src/modules/lsrecaptcha || exit
 export GOPATH=$CUR_PATH/src/modules/lsrecaptcha
 export GO111MODULE=off
 go build lsrecaptcha
@@ -170,6 +171,9 @@ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 
 make -j"$(nproc)"
 cd .. || exit
+
+########################################################
+# Installation
 
 cp build/src/openlitespeed dist/bin/
 if [ -e build/support/unmount_ns/unmount_ns ]; then
@@ -209,36 +213,155 @@ source ./ols.conf
 mkdir -p "$SERVERROOT" >/dev/null 2>&1
 cd dist || exit
 
-########################################################
-cat >./install.sh <<END
+groupadd unyweb
+unyweb_gid=$(grep "^unyweb:" /etc/group | awk -F : '{ print $3; }')
+useradd -g "$unyweb_gid" -d / -r -s /sbin/nologin unyweb
+usermod -a -G unyweb unyweb
 
-CONFFILE=./ols.conf
+# Install libatomic
 
-./_in.sh "\${SERVERROOT}" "\${OPENLSWS_USER}" "\${OPENLSWS_GROUP}" "\${OPENLSWS_ADMIN}" "\${OPENLSWS_PASSWORD}" "\${OPENLSWS_EMAIL}" "\${OPENLSWS_ADMINSSL}" "\${OPENLSWS_ADMINPORT}" "\${USE_LSPHP7}" "\${DEFAULT_TMP_DIR}" "\${PID_FILE}" "\${OPENLSWS_EXAMPLEPORT}" no
+sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.in >admin/misc/lsws.rc
+sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.gentoo.in >admin/misc/lsws.rc.gentoo
+sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lshttpd.service.in >admin/misc/lshttpd.service
 
-cp -f modules/*.so \${SERVERROOT}/modules/
-cp -f bin/openlitespeed \${SERVERROOT}/bin/
+DIR_MOD=755
+SDIR_MOD=700
+EXEC_MOD=555
+CONF_MOD=600
+DOC_MOD=644
 
-if [ "\${PASSWDFILEEXIST}" = "no" ]; then
-    echo -e "\e[31mYour webAdmin password is \${OPENLSWS_PASSWORD}, written to file \$SERVERROOT/adminpasswd.\e[39m"
-else
-    echo -e "\e[31mYour webAdmin password not changed.\e[39m"
-fi
-echo
+DIR_OWN="unyweb:unyweb"
+CONF_OWN="unyweb:unyweb"
+SDIR_OWN="root:root"
+LOGDIR_OWN="root:unyweb"
 
-if [ -f ../needreboot.txt ]; then
-    rm ../needreboot.txt
-    echo -e "\e[31mYou must reboot the server to ensure the settings change take effect!\e[39m"
-    echo
-    exit 0
-fi
+VERSION="$(cat VERSION)"
 
-if [ "\${ISRUNNING}" = "yes" ]; then
-    \${SERVERROOT}/bin/lswsctrl start
-fi
-END
-chmod 777 ./install.sh
-./install.sh
+chown "$SDIR_OWN" "$SERVERROOT"
+
+function util_mkdir {
+    OWNER=$1
+    PERM=$2
+    shift
+    shift
+    for arg; do
+        if [ ! -d "$SERVERROOT/$arg" ]; then
+            mkdir "$SERVERROOT/$arg"
+        fi
+        chown "$OWNER" "$SERVERROOT/$arg"
+        chmod "$PERM" "$SERVERROOT/$arg"
+    done
+}
+function util_cpfile {
+    OWNER=$1
+    PERM=$2
+    shift
+    shift
+    for arg; do
+        if [ -f "$arg" ]; then
+            cp -f "$arg" "$SERVERROOT/$arg"
+            chown "$OWNER" "$SERVERROOT/$arg"
+            chmod "$PERM" "$SERVERROOT/$arg"
+        fi
+    done
+
+}
+function util_ccpfile {
+    OWNER=$1
+    PERM=$2
+    shift
+    shift
+    for arg; do
+        if [ ! -f "$SERVERROOT/$arg" ] && [ -f "$arg" ]; then
+            cp "$arg" "$SERVERROOT/$arg"
+        fi
+        if [ -f "$SERVERROOT/$arg" ]; then
+            chown "$OWNER" "$SERVERROOT/$arg"
+            chmod "$PERM" "$SERVERROOT/$arg"
+        fi
+    done
+}
+function util_cpdir {
+    OWNER=$1
+    PERM=$2
+    shift
+    shift
+    for arg; do
+        cp -R "$arg/"* "$SERVERROOT/$arg/"
+        chown -R "$OWNER" "$SERVERROOT/$arg/"*
+    done
+}
+function util_cp_htaccess {
+    OWNER=$1
+    PERM=$2
+    arg=$3
+    cp -R "$arg/".htaccess "$SERVERROOT/$arg/"
+    chown -R "$OWNER" "$SERVERROOT/$arg/".htaccess
+}
+
+util_mkdir "$SDIR_OWN" "$DIR_MOD" admin bin docs fcgi-bin lsrecaptcha php lib modules backup autoupdate tmp cachedata gdata docs/css docs/img docs/ja-JP docs/zh-CN add-ons share share/autoindex share/autoindex/icons admin/fcgi-bin admin/html."$VERSION" admin/misc lsns lsns/bin lsns/conf
+util_mkdir "$LOGDIR_OWN" "0750" logs admin/logs lsns/logs
+util_mkdir "$CONF_OWN" "$SDIR_MOD" conf conf/cert conf/templates conf/vhosts conf/vhosts/Example admin/conf admin/tmp phpbuild
+util_mkdir "$SDIR_OWN" "$SDIR_MOD" cgid admin/cgid admin/cgid/secret
+util_mkdir "$DIR_OWN" "$SDIR_MOD" tmp/ocspcache
+chgrp unyweb "$SERVERROOT"/admin/tmp "$SERVERROOT"/admin/cgid "$SERVERROOT"/cgid
+chmod g+x "$SERVERROOT"/admin/tmp "$SERVERROOT"/admin/cgid "$SERVERROOT"/cgid
+chown "$CONF_OWN" "$SERVERROOT"/admin/tmp/sess_* 1>/dev/null 2>&1
+chown "$DIR_OWN" "$SERVERROOT"/cachedata
+chown "$DIR_OWN" "$SERVERROOT"/autoupdate
+chown "$DIR_OWN" "$SERVERROOT"/tmp
+util_mkdir "$SDIR_OWN" "$DIR_MOD" Example
+
+util_cpdir "$SDIR_OWN" $DOC_MOD add-ons
+util_cpdir "$CONF_OWN" $DOC_MOD share/autoindex
+
+util_ccpfile "$SDIR_OWN" $EXEC_MOD fcgi-bin/lsperld.fpl fcgi-bin/RackRunner.rb fcgi-bin/lsnode.js
+util_cpfile "$SDIR_OWN" $EXEC_MOD fcgi-bin/RailsRunner.rb fcgi-bin/RailsRunner.rb.2.3
+
+pkill _recaptcha
+util_cpfile "$SDIR_OWN" $EXEC_MOD lsrecaptcha/_recaptcha lsrecaptcha/_recaptcha.shtml
+util_cpfile "$SDIR_OWN" $EXEC_MOD admin/misc/rc-inst.sh admin/misc/admpass.sh admin/misc/rc-uninst.sh admin/misc/uninstall.sh admin/misc/lsws.rc admin/misc/lsws.rc.gentoo admin/misc/enable_phpa.sh admin/misc/mgr_ver.sh admin/misc/gzipStatic.sh admin/misc/fp_install.sh admin/misc/create_admin_keypair.sh admin/misc/awstats_install.sh admin/misc/update.sh admin/misc/cleancache.sh admin/misc/lsup.sh admin/misc/testbeta.sh
+util_cpfile "$SDIR_OWN" $EXEC_MOD admin/misc/ap_lsws.sh.in admin/misc/build_ap_wrapper.sh admin/misc/cpanel_restart_httpd.in admin/misc/build_admin_php.sh admin/misc/convertxml.sh admin/misc/lscmctl
+util_cpfile "$SDIR_OWN" $DOC_MOD admin/misc/gdb-bt admin/misc/htpasswd.php admin/misc/php.ini admin/misc/genjCryptionKeyPair.php admin/misc/purge_cache_byurl.php
+util_cpfile "$SDIR_OWN" $DOC_MOD admin/misc/convertxml.php admin/misc/lshttpd.service
+
+util_ccpfile "$CONF_OWN" $CONF_MOD admin/conf/htpasswd
+
+util_cpfile "$CONF_OWN" $CONF_MOD admin/conf/admin_config.conf
+util_cpfile "$CONF_OWN" $CONF_MOD conf/templates/ccl.conf conf/templates/phpsuexec.conf conf/templates/rails.conf
+util_cpfile "$CONF_OWN" $CONF_MOD admin/conf/php.ini #admin/conf/${SSL_HOSTNAME}.key admin/conf/${SSL_HOSTNAME}.crt
+util_cpfile "$CONF_OWN" $CONF_MOD conf/httpd_config.conf conf/mime.properties conf/httpd_config.conf
+util_cpdir "$CONF_OWN" $CONF_MOD conf/vhosts/Example
+util_mkdir "$SDIR_OWN" $DIR_MOD Example/html Example/cgi-bin
+util_cpdir "$SDIR_OWN" $DOC_MOD Example/html Example/cgi-bin
+util_cp_htaccess "$SDIR_OWN" $DOC_MOD Example/html
+
+chown -R unyweb:unyweb "$SERVERROOT/conf/"
+chmod -R 0750 "$SERVERROOT/conf/"
+
+chmod 0600 "$SERVERROOT/conf/httpd_config.conf"
+chmod 0600 "$SERVERROOT/conf/vhosts/Example/vhconf.conf"
+
+#util_cpfile "$CONF_OWN" $DOC_MOD conf/${SSL_HOSTNAME}.crt
+#util_cpfile "$CONF_OWN" $DOC_MOD conf/${SSL_HOSTNAME}.key
+
+util_mkdir "$DIR_OWN" $DIR_MOD Example/logs Example/fcgi-bin
+util_cpdir "$SDIR_OWN" $DOC_MOD admin/html.$VERSION
+rm -rf $SERVERROOT/admin/html
+ln -sf ./html.$VERSION $SERVERROOT/admin/html
+
+util_cpfile "$SDIR_OWN" $EXEC_MOD bin/updateagent
+util_cpfile "$SDIR_OWN" $EXEC_MOD bin/wswatch.sh
+util_cpfile "$SDIR_OWN" $EXEC_MOD bin/unmount_ns
+util_cpfilev "$SDIR_OWN" $EXEC_MOD $VERSION bin/lswsctrl bin/lshttpd
+
+ln -sf ./lshttpd.$VERSION $SERVERROOT/bin/lshttpd
+ln -sf lshttpd $SERVERROOT/bin/litespeed
+
+util_cpfile "$SDIR_OWN" $DOC_MOD docs/* docs/css/* docs/img/* docs/ja-JP/* docs/zh-CN/*
+util_cpfile "$SDIR_OWN" $DOC_MOD VERSION GPL.txt
+
+# https://github.com/litespeedtech/openlitespeed/blob/master/dist/admin/misc/build_admin_php.sh
 
 ####################################################
 ### End of individual build script
