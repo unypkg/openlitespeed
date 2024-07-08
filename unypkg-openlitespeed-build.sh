@@ -77,6 +77,13 @@ cd /uny/sources || exit
 
 archiving_source
 
+phpgit="https://github.com/php/php-src.git refs/tags/php-8.2*"
+# shellcheck disable=SC2086
+latest_head="$(git ls-remote --refs --tags --sort="v:refname" $pkggit | grep -E "php-[0-9.]*$" | tail --lines=1)"
+pkg_head="$(echo "$latest_head" | sed "s|.*refs/[^/]*/||")"
+pkg_git_repo="$(echo "$phpgit" | cut --fields=1 --delimiter=" ")"
+git clone $gitdepth --recurse-submodules -j8 --single-branch -b "$pkg_head" "$pkg_git_repo"
+
 ######################################################################################################################
 ### Build
 
