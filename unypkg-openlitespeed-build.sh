@@ -393,7 +393,7 @@ chmod 0600 "$SERVERROOT/admin/conf/htpasswd"
 echo "PIDFILE=$PID_FILE" >"$SERVERROOT/bin/lsws_env"
 echo "GRACEFUL_PIDFILE=$DEFAULT_TMP_DIR/graceful.pid" >>"$SERVERROOT/bin/lsws_env"
 
-# https://github.com/litespeedtech/openlitespeed/blob/master/dist/admin/misc/build_admin_php.sh
+"$SERVERROOT"/admin/misc/lscmctl --update-lib
 
 ####################################################
 ### End of individual build script
