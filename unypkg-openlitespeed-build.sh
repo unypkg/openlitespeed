@@ -11,7 +11,7 @@ set -vx
 wget -qO- uny.nu/pkg | bash -s buildsys
 
 ### Installing build dependencies
-unyp install curl cmake libaio go pcre expat libxml2 brotli boringssl/5555991 \
+unyp install curl cmake libaio go pcre expat libxml2 brotli boringssl/5555991 re2c \
     libevent libbcrypt libinjection ip2location libmaxminddb udns lmdb yajl
 
 #pip3_bin=(/uny/pkg/python/*/bin/pip3)
@@ -64,10 +64,9 @@ if [ -e lsquic ]; then
 
         LIBQUICVER=$(cat ../LSQUICCOMMIT)
         echo "LIBQUICVER is ${LIBQUICVER}"
-        git checkout ${LIBQUICVER}
+        git checkout "${LIBQUICVER}"
         git submodule update --init --recursive
-        cd ..
-
+        cd .. || exit
     fi
 fi
 
@@ -79,7 +78,8 @@ archiving_source
 
 phpgit="https://github.com/php/php-src.git refs/tags/php-8.2*"
 # shellcheck disable=SC2086
-latest_head="$(git ls-remote --refs --tags --sort="v:refname" $pkggit | grep -E "php-[0-9.]*$" | tail --lines=1)"
+latest_head="$(git ls-remote --refs --tags --sort="v:refname" $phpgit | grep -E "php-[0-9.]*$" | tail --lines=1)"
+# shellcheck disable=SC2001
 pkg_head="$(echo "$latest_head" | sed "s|.*refs/[^/]*/||")"
 pkg_git_repo="$(echo "$phpgit" | cut --fields=1 --delimiter=" ")"
 git clone $gitdepth --recurse-submodules -j8 --single-branch -b "$pkg_head" "$pkg_git_repo"
@@ -130,7 +130,7 @@ make install
 cd .. || exit
 
 function commentout {
-    sed -i -e "s/$1/#$1/g" $2
+    sed -i -e "s/$1/#$1/g" "$2"
 }
 
 commentout 'add_definitions(-DRUN_TEST)' CMakeLists.txt
@@ -191,7 +191,7 @@ if [ ! -d dist/modules/ ]; then
     mkdir dist/modules/
 fi
 for module in build/src/modules/*; do
-    cp -f ${module}/*.so dist/modules/
+    cp -f "${module}"/*.so dist/modules/
 done
 
 cat >./ols.conf <<END
@@ -226,6 +226,7 @@ useradd -g "$unyweb_gid" -d / -r -s /sbin/nologin unyweb
 usermod -a -G unyweb unyweb
 
 # Install libatomic
+cp -a bin/* "$SERVERROOT"/bin/
 
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.in >admin/misc/lsws.rc
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.gentoo.in >admin/misc/lsws.rc.gentoo
@@ -271,7 +272,6 @@ function util_cpfile {
             chmod "$PERM" "$SERVERROOT/$arg"
         fi
     done
-
 }
 function util_ccpfile {
     OWNER=$1
@@ -353,20 +353,45 @@ chmod 0600 "$SERVERROOT/conf/vhosts/Example/vhconf.conf"
 #util_cpfile "$CONF_OWN" $DOC_MOD conf/${SSL_HOSTNAME}.key
 
 util_mkdir "$DIR_OWN" $DIR_MOD Example/logs Example/fcgi-bin
-util_cpdir "$SDIR_OWN" $DOC_MOD admin/html.$VERSION
-rm -rf $SERVERROOT/admin/html
-ln -sf ./html.$VERSION $SERVERROOT/admin/html
+util_cpdir "$SDIR_OWN" $DOC_MOD admin/html."$VERSION"
+rm -rf "$SERVERROOT"/admin/html
+ln -sf ./html."$VERSION" "$SERVERROOT"/admin/html
 
 util_cpfile "$SDIR_OWN" $EXEC_MOD bin/updateagent
 util_cpfile "$SDIR_OWN" $EXEC_MOD bin/wswatch.sh
 util_cpfile "$SDIR_OWN" $EXEC_MOD bin/unmount_ns
-util_cpfilev "$SDIR_OWN" $EXEC_MOD $VERSION bin/lswsctrl bin/lshttpd
+util_cpfile "$SDIR_OWN" $EXEC_MOD bin/lswsctrl bin/lshttpd
 
-ln -sf ./lshttpd.$VERSION $SERVERROOT/bin/lshttpd
-ln -sf lshttpd $SERVERROOT/bin/litespeed
+ln -sf ./openlitespeed "$SERVERROOT"/bin/lshttpd
+ln -sf lshttpd "$SERVERROOT"/bin/litespeed
 
 util_cpfile "$SDIR_OWN" $DOC_MOD docs/* docs/css/* docs/img/* docs/ja-JP/* docs/zh-CN/*
 util_cpfile "$SDIR_OWN" $DOC_MOD VERSION GPL.txt
+
+# Build simplified php for OLS
+cd /sources/php-src || exit
+./buildconf --force
+./configure --prefix=/tmp --disable-all --enable-litespeed --enable-session --enable-posix --enable-xml --without-libxml --with-expat --with-zlib --enable-sockets --enable-bcmath
+make -j"$(nproc)"
+strip sapi/litespeed/php
+chmod a+rx sapi/litespeed/php
+cp -a sapi/litespeed/php "$SERVERROOT"/admin/fcgi-bin/admin_php
+cp -a sapi/litespeed/php "$SERVERROOT"/fcgi-bin/lsphp
+cd ../openlitespeed-*/dist || exit
+
+ENCRYPT_PASS=$("$SERVERROOT/admin/fcgi-bin/admin_php" -q "$SERVERROOT/admin/misc/htpasswd.php" "$OPENLSWS_PASSWORD")
+echo "$ADMIN_USER:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
+
+"$SERVERROOT"/admin/misc/create_admin_keypair.sh
+
+chown "$CONF_OWN" "$SERVERROOT/admin/conf/jcryption_keypair"
+chmod 0600 "$SERVERROOT/admin/conf/jcryption_keypair"
+
+chown "$CONF_OWN" "$SERVERROOT/admin/conf/htpasswd"
+chmod 0600 "$SERVERROOT/admin/conf/htpasswd"
+
+echo "PIDFILE=$PID_FILE" >"$SERVERROOT/bin/lsws_env"
+echo "GRACEFUL_PIDFILE=$DEFAULT_TMP_DIR/graceful.pid" >>"$SERVERROOT/bin/lsws_env"
 
 # https://github.com/litespeedtech/openlitespeed/blob/master/dist/admin/misc/build_admin_php.sh
 
