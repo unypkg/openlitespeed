@@ -360,7 +360,7 @@ ln -sf ./html."$VERSION" "$SERVERROOT"/admin/html
 util_cpfile "$SDIR_OWN" $EXEC_MOD bin/updateagent
 util_cpfile "$SDIR_OWN" $EXEC_MOD bin/wswatch.sh
 util_cpfile "$SDIR_OWN" $EXEC_MOD bin/unmount_ns
-util_cpfile "$SDIR_OWN" $EXEC_MOD bin/lswsctrl bin/lshttpd
+util_cpfile "$SDIR_OWN" $EXEC_MOD bin/lswsctrl bin/openlitespeed
 
 ln -sf ./openlitespeed "$SERVERROOT"/bin/lshttpd
 ln -sf lshttpd "$SERVERROOT"/bin/litespeed
