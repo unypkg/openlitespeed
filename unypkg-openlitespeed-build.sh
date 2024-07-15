@@ -89,7 +89,7 @@ git clone $gitdepth --recurse-submodules -j8 --single-branch -b "$pkg_head" "$pk
 
 # unyc - run commands in uny's chroot environment
 # shellcheck disable=SC2154
-unyc <<"UNYEOF"
+unyc #<<"UNYEOF"
 set -vx
 source /uny/git/unypkg/fn
 
@@ -227,7 +227,10 @@ usermod -a -G unyweb unyweb
 
 # Install libatomic?
 
-cp -a * "$SERVERROOT"/
+cp -a bin/* "$SERVERROOT"/bin/
+
+sed -e "s/%ADMIN_PORT%/$OPENLSWS_ADMINPORT/" admin/conf/admin_config.conf.in >admin/conf/admin_config.conf
+sed -e "s/%USER%/$OPENLSWS_USER/" -e "s/%GROUP%/$OPENLSWS_GROUP/" -e "s#%DEFAULT_TMP_DIR%#$DEFAULT_TMP_DIR#" -e "s/%ADMIN_EMAIL%/$OPENLSWS_EMAIL/" -e "s/%HTTP_PORT%/$OPENLSWS_EXAMPLEPORT/" -e "s/%RUBY_BIN%/$RUBY_PATH/" conf/httpd_config.conf.in >/conf/httpd_config.conf
 
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.in >admin/misc/lsws.rc
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.gentoo.in >admin/misc/lsws.rc.gentoo
