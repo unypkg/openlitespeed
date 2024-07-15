@@ -225,8 +225,9 @@ unyweb_gid=$(grep "^unyweb:" /etc/group | awk -F : '{ print $3; }')
 useradd -g "$unyweb_gid" -d / -r -s /sbin/nologin unyweb
 usermod -a -G unyweb unyweb
 
-# Install libatomic
-cp -a bin/* "$SERVERROOT"/bin/
+# Install libatomic?
+
+cp -a * "$SERVERROOT"/
 
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.in >admin/misc/lsws.rc
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.gentoo.in >admin/misc/lsws.rc.gentoo
