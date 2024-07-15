@@ -89,7 +89,7 @@ git clone $gitdepth --recurse-submodules -j8 --single-branch -b "$pkg_head" "$pk
 
 # unyc - run commands in uny's chroot environment
 # shellcheck disable=SC2154
-unyc #<<"UNYEOF"
+unyc <<"UNYEOF"
 set -vx
 source /uny/git/unypkg/fn
 
