@@ -76,7 +76,7 @@ cd /uny/sources || exit
 
 archiving_source
 
-phpgit="https://github.com/php/php-src.git refs/tags/php-8.2*"
+phpgit="https://github.com/php/php-src.git refs/tags/php-7.4*"
 # shellcheck disable=SC2086
 latest_head="$(git ls-remote --refs --tags --sort="v:refname" $phpgit | grep -E "php-[0-9.]*$" | tail --lines=1)"
 # shellcheck disable=SC2001
@@ -205,8 +205,8 @@ OPENLSWS_EMAIL=root@localhost
 OPENLSWS_ADMINSSL=yes
 OPENLSWS_ADMINPORT=7080
 USE_LSPHP7=yes
-DEFAULT_TMP_DIR=/run/lshttpd
-PID_FILE=/run/lshttpd/lshttpd.pid
+DEFAULT_TMP_DIR=/tmp/lshttpd
+PID_FILE=/tmp/lshttpd/lshttpd.pid
 OPENLSWS_EXAMPLEPORT=8088
 
 #You can set password here
@@ -371,6 +371,8 @@ ln -sf lshttpd "$SERVERROOT"/bin/litespeed
 
 util_cpfile "$SDIR_OWN" $DOC_MOD docs/* docs/css/* docs/img/* docs/ja-JP/* docs/zh-CN/*
 util_cpfile "$SDIR_OWN" $DOC_MOD VERSION GPL.txt
+
+cp -a admin/html/* "$SERVERROOT"/admin/html/
 
 # Build simplified php for OLS
 cd /sources/php-src || exit
