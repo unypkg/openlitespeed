@@ -60,7 +60,7 @@ if [ -e lsquic ]; then
         echo Need to git download the submodule ...
         rm -rf lsquic
         git clone https://github.com/litespeedtech/lsquic.git
-        cd lsquic
+        cd lsquic || exit
 
         LIBQUICVER=$(cat ../LSQUICCOMMIT)
         echo "LIBQUICVER is ${LIBQUICVER}"
@@ -230,7 +230,7 @@ usermod -a -G unyweb unyweb
 cp -a bin/* "$SERVERROOT"/bin/
 
 sed -e "s/%ADMIN_PORT%/$OPENLSWS_ADMINPORT/" admin/conf/admin_config.conf.in >admin/conf/admin_config.conf
-sed -e "s/%USER%/$OPENLSWS_USER/" -e "s/%GROUP%/$OPENLSWS_GROUP/" -e "s#%DEFAULT_TMP_DIR%#$DEFAULT_TMP_DIR#" -e "s/%ADMIN_EMAIL%/$OPENLSWS_EMAIL/" -e "s/%HTTP_PORT%/$OPENLSWS_EXAMPLEPORT/" -e "s/%RUBY_BIN%/$RUBY_PATH/" conf/httpd_config.conf.in >/conf/httpd_config.conf
+sed -e "s/%USER%/$OPENLSWS_USER/" -e "s/%GROUP%/$OPENLSWS_GROUP/" -e "s#%DEFAULT_TMP_DIR%#$DEFAULT_TMP_DIR#" -e "s/%ADMIN_EMAIL%/$OPENLSWS_EMAIL/" -e "s/%HTTP_PORT%/$OPENLSWS_EXAMPLEPORT/" -e "s/%RUBY_BIN%/$RUBY_PATH/" conf/httpd_config.conf.in >conf/httpd_config.conf
 
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.in >admin/misc/lsws.rc
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.gentoo.in >admin/misc/lsws.rc.gentoo
@@ -243,7 +243,7 @@ CONF_MOD=600
 DOC_MOD=644
 
 DIR_OWN="unyweb:unyweb"
-CONF_OWN="unyweb:unyweb"
+CONF_OWN="lsadm:lsadm"
 SDIR_OWN="root:root"
 LOGDIR_OWN="root:unyweb"
 
