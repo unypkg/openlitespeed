@@ -101,17 +101,6 @@ get_include_paths
 
 source /uny/git/unypkg/fn
 
-# Build minimal lsphp/admin_php
-#pkgname="php"
-#version_verbose_log_clean_unpack_cd
-#get_env_var_values
-#get_include_paths
-#./buildconf -f
-#./configure --prefix=/tmp --disable-all --enable-litespeed --enable-session \
-#    --enable-posix --enable-xml --with-expat --with-zlib --enable-sockets \
-#    --enable-bcmath --enable-json
-#make -j"$(nproc)"
-
 ####################################################
 ### Start of individual build script
 
@@ -179,6 +168,17 @@ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 make -j"$(nproc)"
 cd .. || exit
 
+# Build simplified php for OLS
+cd /sources/php-src || exit
+
+./buildconf --force
+./configure --prefix=/tmp --disable-all --enable-litespeed --enable-session --enable-posix --enable-xml --without-libxml --with-expat --with-zlib --enable-sockets --enable-bcmath
+make -j"$(nproc)"
+strip sapi/litespeed/php
+chmod a+rx sapi/litespeed/php
+
+cd ../openlitespeed-* || exit
+
 ########################################################
 # Installation
 
@@ -194,7 +194,7 @@ for module in build/src/modules/*; do
     cp -f "${module}"/*.so dist/modules/
 done
 
-cat >./ols.conf <<END
+cat >dist/ols.conf <<END
 #If you want to change the default values, please update this file.
 
 SERVERROOT=/uny/pkg/"$pkgname"/"$pkgver"
@@ -213,21 +213,31 @@ OPENLSWS_EXAMPLEPORT=8088
 OPENLSWS_PASSWORD=123456
 END
 
+source dist/ols.conf
+
+cp -a /sources/php-src/sapi/litespeed/php "$SERVERROOT"/admin/fcgi-bin/admin_php
+ln -s "$SERVERROOT"/admin/fcgi-bin/admin_php "$SERVERROOT"/fcgi-bin/lsphp
+
+ENCRYPT_PASS=$("$SERVERROOT/admin/fcgi-bin/admin_php" -q "$SERVERROOT/admin/misc/htpasswd.php" "$OPENLSWS_PASSWORD")
+echo "$ADMIN_USER:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
+
 mv dist/install.sh dist/_in.sh
 
-source ./ols.conf
+function makedir {
+    for arg; do
+        mkdir -pv "$SERVERROOT/$arg"
+    done
+}
 
-mkdir -p "$SERVERROOT" >/dev/null 2>&1
+function cpdir {
+    for arg; do
+        cp -R "$arg/"* "$SERVERROOT/$arg/"
+    done
+}
+
+makedir autoupdate tmp/ocspcache admin/tmp cachedata gdata cgid admin/cgid/secret
+
 cd dist || exit
-
-groupadd unyweb
-unyweb_gid=$(grep "^unyweb:" /etc/group | awk -F : '{ print $3; }')
-useradd -g "$unyweb_gid" -d / -r -s /sbin/nologin unyweb
-usermod -a -G unyweb unyweb
-
-# Install libatomic?
-
-cp -a bin/* "$SERVERROOT"/bin/
 
 sed -e "s/%ADMIN_PORT%/$OPENLSWS_ADMINPORT/" admin/conf/admin_config.conf.in >admin/conf/admin_config.conf
 sed -e "s/%USER%/$OPENLSWS_USER/" -e "s/%GROUP%/$OPENLSWS_GROUP/" -e "s#%DEFAULT_TMP_DIR%#$DEFAULT_TMP_DIR#" -e "s/%ADMIN_EMAIL%/$OPENLSWS_EMAIL/" -e "s/%HTTP_PORT%/$OPENLSWS_EXAMPLEPORT/" -e "s/%RUBY_BIN%/$RUBY_PATH/" conf/httpd_config.conf.in >conf/httpd_config.conf
@@ -236,169 +246,12 @@ sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.in >admin/misc/
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.gentoo.in >admin/misc/lsws.rc.gentoo
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lshttpd.service.in >admin/misc/lshttpd.service
 
-DIR_MOD=755
-SDIR_MOD=700
-EXEC_MOD=555
-CONF_MOD=600
-DOC_MOD=644
+cd .. || exit
 
-DIR_OWN="unyweb:unyweb"
-CONF_OWN="lsadm:lsadm"
-SDIR_OWN="root:root"
-LOGDIR_OWN="root:unyweb"
-
-VERSION="$(cat VERSION)"
-
-chown "$SDIR_OWN" "$SERVERROOT"
-
-function util_mkdir {
-    OWNER=$1
-    PERM=$2
-    shift
-    shift
-    for arg; do
-        if [ ! -d "$SERVERROOT/$arg" ]; then
-            mkdir "$SERVERROOT/$arg"
-        fi
-        chown "$OWNER" "$SERVERROOT/$arg"
-        chmod "$PERM" "$SERVERROOT/$arg"
-    done
-}
-function util_cpfile {
-    OWNER=$1
-    PERM=$2
-    shift
-    shift
-    for arg; do
-        if [ -f "$arg" ]; then
-            cp -f "$arg" "$SERVERROOT/$arg"
-            chown "$OWNER" "$SERVERROOT/$arg"
-            chmod "$PERM" "$SERVERROOT/$arg"
-        fi
-    done
-}
-function util_ccpfile {
-    OWNER=$1
-    PERM=$2
-    shift
-    shift
-    for arg; do
-        if [ ! -f "$SERVERROOT/$arg" ] && [ -f "$arg" ]; then
-            cp "$arg" "$SERVERROOT/$arg"
-        fi
-        if [ -f "$SERVERROOT/$arg" ]; then
-            chown "$OWNER" "$SERVERROOT/$arg"
-            chmod "$PERM" "$SERVERROOT/$arg"
-        fi
-    done
-}
-function util_cpdir {
-    OWNER=$1
-    PERM=$2
-    shift
-    shift
-    for arg; do
-        cp -R "$arg/"* "$SERVERROOT/$arg/"
-        chown -R "$OWNER" "$SERVERROOT/$arg/"*
-    done
-}
-function util_cp_htaccess {
-    OWNER=$1
-    PERM=$2
-    arg=$3
-    cp -R "$arg/".htaccess "$SERVERROOT/$arg/"
-    chown -R "$OWNER" "$SERVERROOT/$arg/".htaccess
-}
-
-util_mkdir "$SDIR_OWN" "$DIR_MOD" admin bin docs fcgi-bin lsrecaptcha php lib modules backup autoupdate tmp cachedata gdata docs/css docs/img docs/ja-JP docs/zh-CN add-ons share share/autoindex share/autoindex/icons admin/fcgi-bin admin/html."$VERSION" admin/misc lsns lsns/bin lsns/conf
-util_mkdir "$LOGDIR_OWN" "0750" logs admin/logs lsns/logs
-util_mkdir "$CONF_OWN" "$SDIR_MOD" conf conf/cert conf/templates conf/vhosts conf/vhosts/Example admin/conf admin/tmp phpbuild
-util_mkdir "$SDIR_OWN" "$SDIR_MOD" cgid admin/cgid admin/cgid/secret
-util_mkdir "$DIR_OWN" "$SDIR_MOD" tmp/ocspcache
-chgrp unyweb "$SERVERROOT"/admin/tmp "$SERVERROOT"/admin/cgid "$SERVERROOT"/cgid
-chmod g+x "$SERVERROOT"/admin/tmp "$SERVERROOT"/admin/cgid "$SERVERROOT"/cgid
-chown "$CONF_OWN" "$SERVERROOT"/admin/tmp/sess_* 1>/dev/null 2>&1
-chown "$DIR_OWN" "$SERVERROOT"/cachedata
-chown "$DIR_OWN" "$SERVERROOT"/autoupdate
-chown "$DIR_OWN" "$SERVERROOT"/tmp
-util_mkdir "$SDIR_OWN" "$DIR_MOD" Example
-
-util_cpdir "$SDIR_OWN" $DOC_MOD add-ons
-util_cpdir "$CONF_OWN" $DOC_MOD share/autoindex
-
-util_ccpfile "$SDIR_OWN" $EXEC_MOD fcgi-bin/lsperld.fpl fcgi-bin/RackRunner.rb fcgi-bin/lsnode.js
-util_cpfile "$SDIR_OWN" $EXEC_MOD fcgi-bin/RailsRunner.rb fcgi-bin/RailsRunner.rb.2.3
-
-pkill _recaptcha
-util_cpfile "$SDIR_OWN" $EXEC_MOD lsrecaptcha/_recaptcha lsrecaptcha/_recaptcha.shtml
-util_cpfile "$SDIR_OWN" $EXEC_MOD admin/misc/rc-inst.sh admin/misc/admpass.sh admin/misc/rc-uninst.sh admin/misc/uninstall.sh admin/misc/lsws.rc admin/misc/lsws.rc.gentoo admin/misc/enable_phpa.sh admin/misc/mgr_ver.sh admin/misc/gzipStatic.sh admin/misc/fp_install.sh admin/misc/create_admin_keypair.sh admin/misc/awstats_install.sh admin/misc/update.sh admin/misc/cleancache.sh admin/misc/lsup.sh admin/misc/testbeta.sh
-util_cpfile "$SDIR_OWN" $EXEC_MOD admin/misc/ap_lsws.sh.in admin/misc/build_ap_wrapper.sh admin/misc/cpanel_restart_httpd.in admin/misc/build_admin_php.sh admin/misc/convertxml.sh admin/misc/lscmctl
-util_cpfile "$SDIR_OWN" $DOC_MOD admin/misc/gdb-bt admin/misc/htpasswd.php admin/misc/php.ini admin/misc/genjCryptionKeyPair.php admin/misc/purge_cache_byurl.php
-util_cpfile "$SDIR_OWN" $DOC_MOD admin/misc/convertxml.php admin/misc/lshttpd.service
-
-util_ccpfile "$CONF_OWN" $CONF_MOD admin/conf/htpasswd
-
-util_cpfile "$CONF_OWN" $CONF_MOD admin/conf/admin_config.conf
-util_cpfile "$CONF_OWN" $CONF_MOD conf/templates/ccl.conf conf/templates/phpsuexec.conf conf/templates/rails.conf
-util_cpfile "$CONF_OWN" $CONF_MOD admin/conf/php.ini #admin/conf/${SSL_HOSTNAME}.key admin/conf/${SSL_HOSTNAME}.crt
-util_cpfile "$CONF_OWN" $CONF_MOD conf/httpd_config.conf conf/mime.properties conf/httpd_config.conf
-util_cpdir "$CONF_OWN" $CONF_MOD conf/vhosts/Example
-util_mkdir "$SDIR_OWN" $DIR_MOD Example/html Example/cgi-bin
-util_cpdir "$SDIR_OWN" $DOC_MOD Example/html Example/cgi-bin
-util_cp_htaccess "$SDIR_OWN" $DOC_MOD Example/html
-
-chown -R unyweb:unyweb "$SERVERROOT/conf/"
-chmod -R 0750 "$SERVERROOT/conf/"
-
-chmod 0600 "$SERVERROOT/conf/httpd_config.conf"
-chmod 0600 "$SERVERROOT/conf/vhosts/Example/vhconf.conf"
-
-#util_cpfile "$CONF_OWN" $DOC_MOD conf/${SSL_HOSTNAME}.crt
-#util_cpfile "$CONF_OWN" $DOC_MOD conf/${SSL_HOSTNAME}.key
-
-util_mkdir "$DIR_OWN" $DIR_MOD Example/logs Example/fcgi-bin
-util_cpdir "$SDIR_OWN" $DOC_MOD admin/html."$VERSION"
-rm -rf "$SERVERROOT"/admin/html
-ln -sf ./html."$VERSION" "$SERVERROOT"/admin/html
-
-util_cpfile "$SDIR_OWN" $EXEC_MOD bin/updateagent
-util_cpfile "$SDIR_OWN" $EXEC_MOD bin/wswatch.sh
-util_cpfile "$SDIR_OWN" $EXEC_MOD bin/unmount_ns
-util_cpfile "$SDIR_OWN" $EXEC_MOD bin/lswsctrl bin/openlitespeed
-
-ln -sf ./openlitespeed "$SERVERROOT"/bin/lshttpd
-ln -sf lshttpd "$SERVERROOT"/bin/litespeed
-
-util_cpfile "$SDIR_OWN" $DOC_MOD docs/* docs/css/* docs/img/* docs/ja-JP/* docs/zh-CN/*
-util_cpfile "$SDIR_OWN" $DOC_MOD VERSION GPL.txt
-
-cp -a admin/html/* "$SERVERROOT"/admin/html/
-
-# Build simplified php for OLS
-cd /sources/php-src || exit
-./buildconf --force
-./configure --prefix=/tmp --disable-all --enable-litespeed --enable-session --enable-posix --enable-xml --without-libxml --with-expat --with-zlib --enable-sockets --enable-bcmath
-make -j"$(nproc)"
-strip sapi/litespeed/php
-chmod a+rx sapi/litespeed/php
-cp -a sapi/litespeed/php "$SERVERROOT"/admin/fcgi-bin/admin_php
-cp -a sapi/litespeed/php "$SERVERROOT"/fcgi-bin/lsphp
-cd ../openlitespeed-*/dist || exit
-
-ENCRYPT_PASS=$("$SERVERROOT/admin/fcgi-bin/admin_php" -q "$SERVERROOT/admin/misc/htpasswd.php" "$OPENLSWS_PASSWORD")
-echo "$ADMIN_USER:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
+cp -a dist/* "$SERVERROOT"
+cp -a bin/* "$SERVERROOT"/bin/
 
 "$SERVERROOT"/admin/misc/create_admin_keypair.sh
-
-chown "$CONF_OWN" "$SERVERROOT/admin/conf/jcryption_keypair"
-chmod 0600 "$SERVERROOT/admin/conf/jcryption_keypair"
-
-chown "$CONF_OWN" "$SERVERROOT/admin/conf/htpasswd"
-chmod 0600 "$SERVERROOT/admin/conf/htpasswd"
-
-echo "PIDFILE=$PID_FILE" >"$SERVERROOT/bin/lsws_env"
-echo "GRACEFUL_PIDFILE=$DEFAULT_TMP_DIR/graceful.pid" >>"$SERVERROOT/bin/lsws_env"
-
 "$SERVERROOT"/admin/misc/lscmctl --update-lib
 
 ####################################################
