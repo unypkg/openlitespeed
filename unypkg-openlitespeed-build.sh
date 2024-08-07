@@ -249,9 +249,9 @@ sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.in >admin/misc/
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.gentoo.in >admin/misc/lsws.rc.gentoo
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lshttpd.service.in >admin/misc/lshttpd.service
 
-ln -sf admin/html.open admin/html
-ln -sf bin/openlitespeed bin/lshttpd
-ln -sf bin/openlitespeed bin/litespeed
+ln -sf html.open admin/html
+ln -sf openlitespeed bin/lshttpd
+ln -sf openlitespeed bin/litespeed
 
 echo "PIDFILE=/tmp/lshttpd/lshttpd.pid" >bin/lsws_env
 echo "GRACEFUL_PIDFILE=/tmp/lshttpd/graceful.pid" >>bin/lsws_env
