@@ -3,7 +3,7 @@
 
 current_dir="$(pwd)"
 unypkg_script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-unypkg_root_dir="$(cd -- "$script_dir"/.. &>/dev/null && pwd)"
+unypkg_root_dir="$(cd -- "$unypkg_script_dir"/.. &>/dev/null && pwd)"
 
 cd "$unypkg_root_dir" || exit
 
@@ -42,10 +42,10 @@ chmod -R 600 admin/conf conf                                        #CONF_MOD
 #util_cpfile "$CONF_OWN" $DOC_MOD conf/${SSL_HOSTNAME}.crt
 #util_cpfile "$CONF_OWN" $DOC_MOD conf/${SSL_HOSTNAME}.key
 
-chown lsadm:lsadm admin/conf/jcryption_keypair
-chmod 0600 admin/conf/jcryption_keypair
+#chown lsadm:lsadm admin/conf/jcryption_keypair
+#chmod 0600 admin/conf/jcryption_keypair
 
 #############################################################################################
 ### End of script
 
-cd "$($current_dir)" || exit
+cd "$current_dir" || exit

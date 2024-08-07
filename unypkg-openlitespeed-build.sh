@@ -238,7 +238,7 @@ function cpdir {
     done
 }
 
-makedir autoupdate tmp/ocspcache admin/tmp cachedata gdata cgid admin/cgid/secret Example/logs Example/fcgi-bin
+makedir autoupdate logs tmp/ocspcache admin/tmp admin/logs cachedata gdata cgid admin/cgid/secret Example/logs Example/fcgi-bin 
 
 cd dist || exit
 
