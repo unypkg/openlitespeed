@@ -218,12 +218,6 @@ END
 
 source dist/ols.conf
 
-cp -a /sources/php-src/sapi/litespeed/php "$SERVERROOT"/admin/fcgi-bin/admin_php
-ln -s "$SERVERROOT"/admin/fcgi-bin/admin_php "$SERVERROOT"/fcgi-bin/lsphp
-
-ENCRYPT_PASS=$("$SERVERROOT/admin/fcgi-bin/admin_php" -q "$SERVERROOT/admin/misc/htpasswd.php" "$OPENLSWS_PASSWORD")
-echo "$ADMIN_USER:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
-
 mv dist/install.sh dist/_in.sh
 
 function makedir {
@@ -238,7 +232,12 @@ function cpdir {
     done
 }
 
-makedir autoupdate logs tmp/ocspcache admin/tmp admin/logs cachedata gdata cgid admin/cgid/secret Example/logs Example/fcgi-bin 
+makedir autoupdate logs tmp/ocspcache admin/tmp admin/logs admin/fcgi-bin cachedata gdata cgid admin/cgid/secret Example/logs Example/fcgi-bin
+
+cp -a /sources/php-src/sapi/litespeed/php "$SERVERROOT"/admin/fcgi-bin/admin_php
+
+ENCRYPT_PASS=$("$SERVERROOT/admin/fcgi-bin/admin_php" -q "$SERVERROOT/admin/misc/htpasswd.php" "$OPENLSWS_PASSWORD")
+echo "$ADMIN_USER:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
 
 cd dist || exit
 
@@ -259,6 +258,8 @@ echo "GRACEFUL_PIDFILE=/tmp/lshttpd/graceful.pid" >>bin/lsws_env
 cd .. || exit
 
 cp -a dist/* "$SERVERROOT"
+
+ln -s ../admin/fcgi-bin/admin_php "$SERVERROOT"/fcgi-bin/lsphp
 
 "$SERVERROOT"/admin/misc/create_admin_keypair.sh
 "$SERVERROOT"/admin/misc/lscmctl --update-lib
