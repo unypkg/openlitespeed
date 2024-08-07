@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2034,SC1091,SC2154
+# shellcheck disable=SC2010,SC2034,SC1091,SC2154
 
 set -vx
 
@@ -183,6 +183,8 @@ cd ../openlitespeed-* || exit
 # Installation
 
 cp build/src/openlitespeed dist/bin/
+cp -a bin/* dist/bin/
+
 if [ -e build/support/unmount_ns/unmount_ns ]; then
     cp build/support/unmount_ns/unmount_ns dist/bin/
 fi
@@ -235,7 +237,7 @@ function cpdir {
     done
 }
 
-makedir autoupdate tmp/ocspcache admin/tmp cachedata gdata cgid admin/cgid/secret
+makedir autoupdate tmp/ocspcache admin/tmp cachedata gdata cgid admin/cgid/secret Example/logs Example/fcgi-bin
 
 cd dist || exit
 
@@ -246,10 +248,16 @@ sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.in >admin/misc/
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lsws.rc.gentoo.in >admin/misc/lsws.rc.gentoo
 sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lshttpd.service.in >admin/misc/lshttpd.service
 
+ln -sf admin/html.open admin/html
+ln -sf bin/openlitespeed bin/lshttpd
+ln -sf bin/openlitespeed bin/litespeed
+
+echo "PIDFILE=/tmp/lshttpd/lshttpd.pid" >bin/lsws_env
+echo "GRACEFUL_PIDFILE=/tmp/lshttpd/graceful.pid" >>bin/lsws_env
+
 cd .. || exit
 
 cp -a dist/* "$SERVERROOT"
-cp -a bin/* "$SERVERROOT"/bin/
 
 "$SERVERROOT"/admin/misc/create_admin_keypair.sh
 "$SERVERROOT"/admin/misc/lscmctl --update-lib
