@@ -169,6 +169,7 @@ make -j"$(nproc)"
 cd .. || exit
 
 # Build simplified php for OLS
+cur_dir="$(pwd)"
 cd /sources/php-src || exit
 
 ./buildconf --force
@@ -177,7 +178,7 @@ make -j"$(nproc)"
 strip sapi/litespeed/php
 chmod a+rx sapi/litespeed/php
 
-cd ../openlitespeed-* || exit
+cd "$cur_dir" || exit
 
 ########################################################
 # Installation
