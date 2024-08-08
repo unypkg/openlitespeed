@@ -12,8 +12,10 @@ cd "$unypkg_root_dir" || exit
 
 groupadd unyweb
 unyweb_gid=$(grep "^unyweb:" /etc/group | awk -F : '{ print $3; }')
-useradd -g "$unyweb_gid" -d / -r -s /sbin/nologin unyweb
+useradd -g "$unyweb_gid" -d /uny/home/unyweb -r -s /sbin/nologin unyweb
 usermod -a -G unyweb unyweb
+
+useradd -M -r -s /sbin/nologin lsadm
 
 chgrp unyweb admin/tmp admin/cgid cgid
 chmod g+x admin/tmp admin/cgid cgid
