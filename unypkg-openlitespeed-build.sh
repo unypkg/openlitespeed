@@ -236,9 +236,6 @@ makedir autoupdate logs tmp/ocspcache admin/tmp admin/logs admin/fcgi-bin cached
 
 cp -a /sources/php-src/sapi/litespeed/php "$SERVERROOT"/admin/fcgi-bin/admin_php
 
-ENCRYPT_PASS=$("$SERVERROOT/admin/fcgi-bin/admin_php" -q "$SERVERROOT/admin/misc/htpasswd.php" "$OPENLSWS_PASSWORD")
-echo "$ADMIN_USER:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
-
 cd dist || exit
 
 sed -e "s/%ADMIN_PORT%/$OPENLSWS_ADMINPORT/" admin/conf/admin_config.conf.in >admin/conf/admin_config.conf
@@ -260,6 +257,9 @@ cd .. || exit
 cp -a dist/* "$SERVERROOT"
 
 ln -s ../admin/fcgi-bin/admin_php "$SERVERROOT"/fcgi-bin/lsphp
+
+ENCRYPT_PASS=$("$SERVERROOT/admin/fcgi-bin/admin_php" -q "$SERVERROOT/admin/misc/htpasswd.php" "$OPENLSWS_PASSWORD")
+echo "$ADMIN_USER:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
 
 "$SERVERROOT"/admin/misc/create_admin_keypair.sh
 "$SERVERROOT"/admin/misc/lscmctl --update-lib
