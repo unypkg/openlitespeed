@@ -248,7 +248,7 @@ sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lshttpd.service.in >adm
 ln -sf html.open admin/html
 ln -sf openlitespeed bin/lshttpd
 ln -sf openlitespeed bin/litespeed
-ln -sf admin/fcgi-bin/admin_php bin/olsphp_link
+ln -sf ../admin/fcgi-bin/admin_php bin/olsphp_link
 
 echo "PIDFILE=/tmp/lshttpd/lshttpd.pid" >bin/lsws_env
 echo "GRACEFUL_PIDFILE=/tmp/lshttpd/graceful.pid" >>bin/lsws_env
