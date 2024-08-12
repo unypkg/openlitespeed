@@ -203,7 +203,7 @@ cat >dist/ols.conf <<END
 SERVERROOT=/uny/pkg/"$pkgname"/"$pkgver"
 OPENLSWS_USER=unyweb
 OPENLSWS_GROUP=unyweb
-OPENLSWS_ADMIN=unyweb
+OPENLSWS_ADMIN=unyadm
 OPENLSWS_EMAIL=root@localhost
 OPENLSWS_ADMINSSL=yes
 OPENLSWS_ADMINPORT=7080
@@ -259,7 +259,7 @@ cp -a dist/* "$SERVERROOT"
 ln -s ../admin/fcgi-bin/admin_php "$SERVERROOT"/fcgi-bin/lsphp
 
 ENCRYPT_PASS=$("$SERVERROOT/admin/fcgi-bin/admin_php" -q "$SERVERROOT/admin/misc/htpasswd.php" "$OPENLSWS_PASSWORD")
-echo "$ADMIN_USER:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
+echo "$OPENLSWS_ADMIN:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
 
 "$SERVERROOT"/admin/misc/create_admin_keypair.sh
 "$SERVERROOT"/admin/misc/lscmctl --update-lib
