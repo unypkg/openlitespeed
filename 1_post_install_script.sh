@@ -47,6 +47,8 @@ chmod -R 600 conf                              #CONF_MOD
 #chown lsadm:lsadm admin/conf/jcryption_keypair
 #chmod 0600 admin/conf/jcryption_keypair
 
+rm -rf /tmp/lshttpd
+
 #############################################################################################
 ### End of script
 
