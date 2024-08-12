@@ -76,7 +76,7 @@ cd /uny/sources || exit
 
 archiving_source
 
-phpgit="https://github.com/php/php-src.git refs/tags/php-7.4*"
+phpgit="https://github.com/php/php-src.git refs/tags/php-*"
 # shellcheck disable=SC2086
 latest_head="$(git ls-remote --refs --tags --sort="v:refname" $phpgit | grep -E "php-[0-9.]*$" | tail --lines=1)"
 # shellcheck disable=SC2001
