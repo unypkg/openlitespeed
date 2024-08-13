@@ -30,11 +30,11 @@ chmod 750 logs admin/logs admin/conf             #NO_VARIABLE
 chown -R root:root admin lsrecaptcha fcgi-bin add-ons Example bin #SDIR_OWN
 chown -R lsadm:lsadm conf share/autoindex admin/conf admin/tmp    #CONF_OWN
 
-chmod -R 644 admin/cgid/secret                 #SDIR_MOD
-chmod -R 555 admin lsrecaptcha fcgi-bin bin    #EXEC_MOD
-chmod -R 755 admin/tmp admin/cgid cgid Example #DIR_MOD
-chmod -R 644 add-ons share/autoindex docs      #DOC_MOD
-chmod -R 600 conf                              #CONF_MOD
+chmod -R 644 admin/cgid/secret                            #SDIR_MOD
+chmod -R 555 admin lsrecaptcha fcgi-bin bin               #EXEC_MOD
+chmod -R 755 admin/tmp admin/conf admin/cgid cgid Example #DIR_MOD
+chmod -R 644 add-ons share/autoindex docs                 #DOC_MOD
+chmod -R 600 conf                                         #CONF_MOD
 
 #chmod -R 0750 "$SERVERROOT/conf/"
 
