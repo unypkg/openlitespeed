@@ -234,7 +234,7 @@ function cpdir {
 
 makedir autoupdate logs tmp/ocspcache admin/tmp admin/logs admin/fcgi-bin cachedata gdata cgid admin/cgid/secret Example/logs Example/fcgi-bin
 
-cp -a /sources/php-src/sapi/litespeed/php "$SERVERROOT"/admin/fcgi-bin/admin_php
+cp -a /sources/php-src/sapi/litespeed/php dist/bin/ols_php
 
 cd dist || exit
 
@@ -248,7 +248,6 @@ sed "s:%LSWS_CTRL%:$SERVERROOT/bin/lswsctrl:" admin/misc/lshttpd.service.in >adm
 ln -sf html.open admin/html
 ln -sf openlitespeed bin/lshttpd
 ln -sf openlitespeed bin/litespeed
-ln -sf ../admin/fcgi-bin/admin_php bin/olsphp_link
 
 echo "PIDFILE=/tmp/lshttpd/lshttpd.pid" >bin/lsws_env
 echo "GRACEFUL_PIDFILE=/tmp/lshttpd/graceful.pid" >>bin/lsws_env
@@ -257,7 +256,8 @@ cd .. || exit
 
 cp -a dist/* "$SERVERROOT"
 
-ln -s ../admin/fcgi-bin/admin_php "$SERVERROOT"/fcgi-bin/lsphp
+ln -s ../bin/ols_php "$SERVERROOT"/fcgi-bin/lsphp
+ln -s ../../bin/ols_php "$SERVERROOT"/admin/fcgi-bin/admin_php
 
 wget -O "$SERVERROOT"/admin/html.open/lib/jCryption.php https://raw.githubusercontent.com/unysrc/openlitespeed/php-8-fixes/dist/admin/html.open/lib/jCryption.php
 
