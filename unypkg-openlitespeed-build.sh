@@ -259,6 +259,8 @@ cp -a dist/* "$SERVERROOT"
 
 ln -s ../admin/fcgi-bin/admin_php "$SERVERROOT"/fcgi-bin/lsphp
 
+wget -O "$SERVERROOT"/admin/html.open/lib/jCryption.php https://raw.githubusercontent.com/unysrc/openlitespeed/php-8-fixes/dist/admin/html.open/lib/jCryption.php
+
 ENCRYPT_PASS=$("$SERVERROOT/admin/fcgi-bin/admin_php" -q "$SERVERROOT/admin/misc/htpasswd.php" "$OPENLSWS_PASSWORD")
 echo "$OPENLSWS_ADMIN:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
 
