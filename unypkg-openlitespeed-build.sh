@@ -55,6 +55,7 @@ git_clone_source_repo
 cd "$pkgname" || exit
 
 wget -O dist/admin/html.open/lib/jCryption.php https://raw.githubusercontent.com/unysrc/openlitespeed/php-8-fixes/dist/admin/html.open/lib/jCryption.php
+wget -O dist/admin/misc/genjCryptionKeyPair.php https://raw.githubusercontent.com/unysrc/openlitespeed/php-8-fixes/dist/admin/misc/genjCryptionKeyPair.php
 
 if [ -e lsquic ]; then
     if ls src/ | grep liblsquic; then
@@ -176,7 +177,6 @@ cd /sources/php-src || exit
 ./buildconf --force
 ./configure --prefix=/tmp --disable-all --enable-litespeed --enable-session --enable-posix --enable-xml --without-libxml --with-expat --with-zlib --enable-sockets --enable-bcmath
 make -j"$(nproc)"
-strip sapi/litespeed/php
 chmod a+rx sapi/litespeed/php
 
 cd "$cur_dir" || exit
@@ -264,7 +264,7 @@ ENCRYPT_PASS=$("$SERVERROOT/admin/fcgi-bin/admin_php" -q "$SERVERROOT/admin/misc
 echo "$OPENLSWS_ADMIN:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
 
 "$SERVERROOT"/admin/misc/create_admin_keypair.sh
-"$SERVERROOT"/admin/misc/lscmctl --update-lib
+#"$SERVERROOT"/admin/misc/lscmctl --update-lib
 
 ####################################################
 ### End of individual build script
