@@ -54,9 +54,10 @@ git_clone_source_repo
 
 cd "$pkgname" || exit
 
+wget -O dist/admin/html.open/lib/jCryption.php https://raw.githubusercontent.com/unysrc/openlitespeed/php-8-fixes/dist/admin/html.open/lib/jCryption.php
+
 if [ -e lsquic ]; then
-    ls src/ | grep liblsquic
-    if [ $? -eq 0 ]; then
+    if ls src/ | grep liblsquic; then
         echo Need to git download the submodule ...
         rm -rf lsquic
         git clone https://github.com/litespeedtech/lsquic.git
@@ -258,8 +259,6 @@ cp -a dist/* "$SERVERROOT"
 
 ln -s ../bin/ols_php "$SERVERROOT"/fcgi-bin/lsphp
 ln -s ../../bin/ols_php "$SERVERROOT"/admin/fcgi-bin/admin_php
-
-wget -O "$SERVERROOT"/admin/html.open/lib/jCryption.php https://raw.githubusercontent.com/unysrc/openlitespeed/php-8-fixes/dist/admin/html.open/lib/jCryption.php
 
 ENCRYPT_PASS=$("$SERVERROOT/admin/fcgi-bin/admin_php" -q "$SERVERROOT/admin/misc/htpasswd.php" "$OPENLSWS_PASSWORD")
 echo "$OPENLSWS_ADMIN:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
