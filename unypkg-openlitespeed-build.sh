@@ -162,7 +162,7 @@ rm -f build/CMakeCache.txt
 mkdir build
 cd build || exit
 
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+cmake -DCMAKE_BUILD_TYPE=Release \
     -DMOD_PAGESPEED="OFF" \
     -DMOD_SECURITY="OFF" \
     -DMOD_LUA="OFF" ..

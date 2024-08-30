@@ -49,6 +49,11 @@ chmod -R 600 conf                                         #CONF_MOD
 
 rm -rf /tmp/lshttpd
 
+cp -a admin/misc/lshttpd.service /etc/systemd/system/uny-ols.service
+sed "s|.*Alias=.*||g" -i /etc/systemd/system/uny-ols.service
+sed -e '/\[Install\]/a\' -e 'Alias=ols.service openlitespeed.service httpd.service apache2.service' -i /etc/systemd/system/uny-ols.service
+systemctl daemon-reload
+
 #############################################################################################
 ### End of script
 
