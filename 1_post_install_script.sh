@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2034,SC1091,SC2154
+# shellcheck disable=SC2034,SC1091,SC2154,SC1003
 
 current_dir="$(pwd)"
 unypkg_script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
@@ -49,7 +49,22 @@ chmod -R 600 conf                                         #CONF_MOD
 
 rm -rf /tmp/lshttpd
 
+if [[ ! -d /etc/uny/ols ]]; then
+    mkdir -pv /etc/uny/ols/admin
+    cp -av {logs,cachedata,autoupdate,tmp,conf,gdata,cgid} /etc/uny/ols
+    cp -av {admin/logs,admin/tmp,admin/conf,admin/cgid,admin/fcgi-bin,admin/html} /etc/uny/ols/admin
+fi
+
+cd /etc/uny/ols || exit
+for linkdir in {Example,bin,docs,share,fcgi-bin,add-ons,lsrecaptcha,modules,admin/html.open,admin/misc}; do
+    ln -sfv "$unypkg_root_dir"/"$linkdir" "$linkdir"
+done
+
+cd "$unypkg_root_dir" || exit
 cp -a admin/misc/lshttpd.service /etc/systemd/system/uny-ols.service
+sed "s|$unypkg_root_dir|/etc/uny/ols|" -i /etc/systemd/system/uny-ols.service
+sed "s|KillMode=none|KillMode=mixed|" -i /etc/systemd/system/uny-ols.service
+sed "s|PIDFile=/var/run/openlitespeed.pid|PIDFile=/run/openlitespeed.pid|" -i /etc/systemd/system/uny-ols.service
 sed "s|.*Alias=.*||g" -i /etc/systemd/system/uny-ols.service
 sed -e '/\[Install\]/a\' -e 'Alias=ols.service openlitespeed.service httpd.service apache2.service' -i /etc/systemd/system/uny-ols.service
 systemctl daemon-reload
