@@ -163,6 +163,7 @@ mkdir build
 cd build || exit
 
 cmake -DCMAKE_BUILD_TYPE=Release \
+    -Wno-dev \
     -DMOD_PAGESPEED="OFF" \
     -DMOD_SECURITY="OFF" \
     -DMOD_LUA="OFF" ..
