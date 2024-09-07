@@ -60,16 +60,16 @@ for linkdir in {Example,bin,docs,share,fcgi-bin,add-ons,lsrecaptcha,modules,admi
     ln -sfvn "$unypkg_root_dir"/"$linkdir" "$linkdir"
 done
 
+cd "$unypkg_root_dir" || exit
 if [[ ! -d /etc/uny/ols ]]; then
     mkdir -pv /etc/uny/ols/admin
     cp -av {autoupdate,conf} /etc/uny/ols
     cp -av admin/conf /etc/uny/ols/admin
-    ln -sfvn /etc/uny/ols/autoupdate autoupdate
-    ln -sfvn /etc/uny/ols/conf conf
-    ln -sfvn /etc/uny/ols/admin/conf admin/conf
+    ln -sfvn /etc/uny/ols/autoupdate /opt/uny/ols/autoupdate
+    ln -sfvn /etc/uny/ols/conf /opt/uny/ols/conf
+    ln -sfvn /etc/uny/ols/admin/conf /opt/uny/ols/admin/conf
 fi
 
-cd "$unypkg_root_dir" || exit
 cp -a admin/misc/lshttpd.service /etc/systemd/system/uny-ols.service
 sed "s|$unypkg_root_dir|/opt/uny/ols|" -i /etc/systemd/system/uny-ols.service
 sed "s|KillMode=none|KillMode=mixed|" -i /etc/systemd/system/uny-ols.service
