@@ -49,26 +49,21 @@ chmod -R 600 conf                                         #CONF_MOD
 
 rm -rf /tmp/lshttpd
 
-if [[ ! -d /opt/uny/ols ]]; then
-    mkdir -pv /opt/uny/ols/admin
-    cp -av {logs,cachedata,tmp,gdata,cgid} /opt/uny/ols
-    cp -av {admin/logs,admin/tmp,admin/cgid,admin/fcgi-bin,admin/html} /opt/uny/ols/admin
-fi
-
-cd /opt/uny/ols || exit
-for linkdir in {Example,bin,docs,share,fcgi-bin,add-ons,lsrecaptcha,modules,admin/html.open,admin/misc}; do
-    ln -sfvn "$unypkg_root_dir"/"$linkdir" "$linkdir"
-done
-
-cd "$unypkg_root_dir" || exit
 if [[ ! -d /etc/uny/ols ]]; then
     mkdir -pv /etc/uny/ols/admin
-    cp -av {autoupdate,conf} /etc/uny/ols
+    cp -av conf /etc/uny/ols
     cp -av admin/conf /etc/uny/ols/admin
-    ln -sfvn /etc/uny/ols/autoupdate /opt/uny/ols/autoupdate
-    ln -sfvn /etc/uny/ols/conf /opt/uny/ols/conf
-    ln -sfvn /etc/uny/ols/admin/conf /opt/uny/ols/admin/conf
 fi
+
+mv conf conf_bak
+mv admin/conf admin/conf_bak
+ln -sfvn /etc/uny/ols/conf conf
+ln -sfvn /etc/uny/ols/admin/conf admin/conf
+
+rm -rfv logs admin/logs
+mkdir -pv /var/uny/ols/admin
+ln -sfvn /var/uny/ols/logs logs
+ln -sfvn /var/uny/ols/admin/logs admin/logs
 
 cp -a admin/misc/lshttpd.service /etc/systemd/system/uny-ols.service
 sed "s|$unypkg_root_dir|/opt/uny/ols|" -i /etc/systemd/system/uny-ols.service
