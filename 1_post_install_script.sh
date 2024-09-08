@@ -61,12 +61,11 @@ ln -sfvn /etc/uny/ols/conf conf
 ln -sfvn /etc/uny/ols/admin/conf admin/conf
 
 rm -rfv logs admin/logs
-mkdir -pv /var/uny/ols/admin
+mkdir -pv /var/uny/ols/logs/admin
 ln -sfvn /var/uny/ols/logs logs
 ln -sfvn /var/uny/ols/admin/logs admin/logs
 
 cp -a admin/misc/lshttpd.service /etc/systemd/system/uny-ols.service
-sed "s|$unypkg_root_dir|/opt/uny/ols|" -i /etc/systemd/system/uny-ols.service
 sed "s|KillMode=none|KillMode=mixed|" -i /etc/systemd/system/uny-ols.service
 sed "s|PIDFile=/var/run/openlitespeed.pid|PIDFile=/run/openlitespeed.pid|" -i /etc/systemd/system/uny-ols.service
 sed "s|.*Alias=.*||g" -i /etc/systemd/system/uny-ols.service
