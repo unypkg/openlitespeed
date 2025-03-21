@@ -71,6 +71,8 @@ sed "s|PIDFile=/var/run/openlitespeed.pid|PIDFile=/run/openlitespeed.pid|" -i /e
 sed "s|.*Alias=.*||g" -i /etc/systemd/system/uny-ols.service
 sed -e '/\[Install\]/a\' -e 'Alias=ols.service openlitespeed.service litespeed.service httpd.service apache2.service' -i /etc/systemd/system/uny-ols.service
 systemctl daemon-reload
+systemctl enable uny-ols
+systemctl start uny-ols
 
 #############################################################################################
 ### End of script
