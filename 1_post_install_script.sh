@@ -49,30 +49,31 @@ chmod -R 600 conf                                         #CONF_MOD
 
 rm -rf /tmp/lshttpd
 
-if [[ ! -d /etc/uny/ols ]]; then
-    mkdir -pv /etc/uny/ols/admin
-    cp -av conf /etc/uny/ols
-    cp -av admin/conf /etc/uny/ols/admin
+if [[ ! -d /etc/uny/openlitespeed ]]; then
+    mkdir -pv /etc/uny/openlitespeed/admin
+    cp -av conf /etc/uny/openlitespeed
+    cp -av admin/conf /etc/uny/openlitespeed/admin
 fi
 
 mv conf conf_bak
 mv admin/conf admin/conf_bak
-ln -sfvn /etc/uny/ols/conf conf
-ln -sfvn /etc/uny/ols/admin/conf admin/conf
+ln -sfvn /etc/uny/openlitespeed/conf conf
+ln -sfvn /etc/uny/openlitespeed/admin/conf admin/conf
 
 rm -rfv logs admin/logs
 mkdir -pv /var/uny/ols/logs/admin
 ln -sfvn /var/uny/ols/logs logs
 ln -sfvn /var/uny/ols/admin/logs admin/logs
 
-cp -a admin/misc/lshttpd.service /etc/systemd/system/uny-ols.service
-sed "s|KillMode=none|KillMode=mixed|" -i /etc/systemd/system/uny-ols.service
-sed "s|PIDFile=/var/run/openlitespeed.pid|PIDFile=/run/openlitespeed.pid|" -i /etc/systemd/system/uny-ols.service
-sed "s|.*Alias=.*||g" -i /etc/systemd/system/uny-ols.service
-sed -e '/\[Install\]/a\' -e 'Alias=ols.service openlitespeed.service litespeed.service httpd.service apache2.service' -i /etc/systemd/system/uny-ols.service
+cp -a admin/misc/lshttpd.service /etc/systemd/system/uny-openlitespeed.service
+sed "s|KillMode=none|KillMode=mixed|" -i /etc/systemd/system/uny-openlitespeed.service
+sed "s|PIDFile=/var/run/openlitespeed.pid|PIDFile=/run/openlitespeed/openlitespeed.pid|" -i /etc/systemd/system/uny-openlitespeed.service
+sed "s|.*Alias=.*||g" -i /etc/systemd/system/uny-openlitespeed.service
+sed -e '/\[Install\]/a\' -e 'Alias=ols.service openlitespeed.service litespeed.service httpd.service apache2.service' -i /etc/systemd/system/uny-openlitespeed.service
+sed -e '/\[Service\]/a\' -e 'RuntimeDirectory=openlitespeed' -i /etc/systemd/system/uny-openlitespeed.service
 systemctl daemon-reload
-systemctl enable uny-ols
-systemctl start uny-ols
+systemctl enable uny-openlitespeed
+systemctl start uny-openlitespeed
 
 #############################################################################################
 ### End of script
