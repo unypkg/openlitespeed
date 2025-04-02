@@ -251,8 +251,8 @@ ln -sf html.open admin/html
 ln -sf openlitespeed bin/lshttpd
 ln -sf openlitespeed bin/litespeed
 
-echo "PIDFILE=/tmp/lshttpd/lshttpd.pid" >bin/lsws_env
-echo "GRACEFUL_PIDFILE=/tmp/lshttpd/graceful.pid" >>bin/lsws_env
+echo "PIDFILE=/run/openlitespeed/openlitespeed.pid" >bin/lsws_env
+echo "GRACEFUL_PIDFILE=/run/openlitespeed/graceful.pid" >>bin/lsws_env
 
 cd .. || exit
 
