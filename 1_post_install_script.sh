@@ -55,10 +55,12 @@ if [[ ! -d /etc/uny/openlitespeed ]]; then
     cp -av admin/conf /etc/uny/openlitespeed/admin
 fi
 
-mv conf conf_bak
-mv admin/conf admin/conf_bak
-ln -sfvn /etc/uny/openlitespeed/conf conf
-ln -sfvn /etc/uny/openlitespeed/admin/conf admin/conf
+if [[ ! -L conf ]]; then
+    mv conf conf_bak
+    mv admin/conf admin/conf_bak
+    ln -sfvn /etc/uny/openlitespeed/conf conf
+    ln -sfvn /etc/uny/openlitespeed/admin/conf admin/conf
+fi
 
 rm -rfv logs admin/logs
 mkdir -pv /var/uny/ols/logs/admin
