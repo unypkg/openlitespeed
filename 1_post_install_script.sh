@@ -62,10 +62,11 @@ if [[ ! -L conf ]]; then
     ln -sfvn /etc/uny/openlitespeed/admin/conf admin/conf
 fi
 
-rm -rfv logs admin/logs
-mkdir -pv /var/uny/ols/logs/admin
-ln -sfvn /var/uny/ols/logs logs
-ln -sfvn /var/uny/ols/admin/logs admin/logs
+mkdir -pv /var/log/openlitespeed/admin
+if [[ ! -L logs ]]; then
+    ln -sfvn /var/log/openlitespeed/logs logs
+    ln -sfvn /var/log/openlitespeed/admin/logs admin/logs
+fi
 
 cp -a admin/misc/lshttpd.service /etc/systemd/system/uny-openlitespeed.service
 sed "s|KillMode=none|KillMode=mixed|" -i /etc/systemd/system/uny-openlitespeed.service

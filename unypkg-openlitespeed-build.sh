@@ -267,6 +267,8 @@ echo "$OPENLSWS_ADMIN:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
 "$SERVERROOT"/admin/misc/create_admin_keypair.sh
 #"$SERVERROOT"/admin/misc/lscmctl --update-lib
 
+rm -rfv logs admin/logs
+
 ####################################################
 ### End of individual build script
 
