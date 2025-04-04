@@ -33,7 +33,7 @@ if [[ ! -L conf ]]; then
     ln -sfvn /etc/uny/openlitespeed/admin/conf admin/conf
 fi
 
-mkdir -pv /var/log/openlitespeed/{admin,logs}/logs
+mkdir -pv /var/log/openlitespeed/{admin,logs} /var/log/openlitespeed/admin/logs
 if [[ ! -L logs ]]; then
     ln -sfvn /var/log/openlitespeed/logs logs
     ln -sfvn /var/log/openlitespeed/admin/logs admin/logs
