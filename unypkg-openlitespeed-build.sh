@@ -254,6 +254,8 @@ ln -sf openlitespeed bin/litespeed
 echo "PIDFILE=/run/openlitespeed/openlitespeed.pid" >bin/lsws_env
 echo "GRACEFUL_PIDFILE=/run/openlitespeed/graceful.pid" >>bin/lsws_env
 
+rm -rfv logs admin/logs
+
 cd .. || exit
 
 cp -a dist/* "$SERVERROOT"
@@ -266,8 +268,6 @@ echo "$OPENLSWS_ADMIN:$ENCRYPT_PASS" >"$SERVERROOT/admin/conf/htpasswd"
 
 "$SERVERROOT"/admin/misc/create_admin_keypair.sh
 #"$SERVERROOT"/admin/misc/lscmctl --update-lib
-
-rm -rfv logs admin/logs
 
 ####################################################
 ### End of individual build script

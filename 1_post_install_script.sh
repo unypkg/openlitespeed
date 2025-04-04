@@ -56,6 +56,7 @@ if [[ ! -d /etc/uny/openlitespeed ]]; then
 fi
 
 if [[ ! -L conf ]]; then
+    [[ -d conf_bak ]] && rm -rf conf_bak admin/conf_bak
     mv conf conf_bak
     mv admin/conf admin/conf_bak
     ln -sfvn /etc/uny/openlitespeed/conf conf
