@@ -17,6 +17,28 @@ usermod -a -G unyweb unyweb
 
 useradd -M -r -s /sbin/nologin lsadm
 
+rm -rf /tmp/lshttpd
+
+if [[ ! -d /etc/uny/openlitespeed ]]; then
+    mkdir -pv /etc/uny/openlitespeed/admin
+    cp -av conf /etc/uny/openlitespeed
+    cp -av admin/conf /etc/uny/openlitespeed/admin
+fi
+
+if [[ ! -L conf ]]; then
+    [[ -d conf_bak ]] && rm -rf conf_bak admin/conf_bak
+    mv conf conf_bak
+    mv admin/conf admin/conf_bak
+    ln -sfvn /etc/uny/openlitespeed/conf conf
+    ln -sfvn /etc/uny/openlitespeed/admin/conf admin/conf
+fi
+
+mkdir -pv /var/log/openlitespeed/{admin,logs}/logs
+if [[ ! -L logs ]]; then
+    ln -sfvn /var/log/openlitespeed/logs logs
+    ln -sfvn /var/log/openlitespeed/admin/logs admin/logs
+fi
+
 chgrp unyweb admin/tmp admin/cgid cgid
 chmod g+x admin/tmp admin/cgid cgid
 
@@ -46,28 +68,6 @@ chmod -R 600 conf                                         #CONF_MOD
 
 #chown lsadm:lsadm admin/conf/jcryption_keypair
 #chmod 0600 admin/conf/jcryption_keypair
-
-rm -rf /tmp/lshttpd
-
-if [[ ! -d /etc/uny/openlitespeed ]]; then
-    mkdir -pv /etc/uny/openlitespeed/admin
-    cp -av conf /etc/uny/openlitespeed
-    cp -av admin/conf /etc/uny/openlitespeed/admin
-fi
-
-if [[ ! -L conf ]]; then
-    [[ -d conf_bak ]] && rm -rf conf_bak admin/conf_bak
-    mv conf conf_bak
-    mv admin/conf admin/conf_bak
-    ln -sfvn /etc/uny/openlitespeed/conf conf
-    ln -sfvn /etc/uny/openlitespeed/admin/conf admin/conf
-fi
-
-mkdir -pv /var/log/openlitespeed/admin
-if [[ ! -L logs ]]; then
-    ln -sfvn /var/log/openlitespeed/logs logs
-    ln -sfvn /var/log/openlitespeed/admin/logs admin/logs
-fi
 
 cp -a admin/misc/lshttpd.service /etc/systemd/system/uny-openlitespeed.service
 sed "s|KillMode=none|KillMode=mixed|" -i /etc/systemd/system/uny-openlitespeed.service
