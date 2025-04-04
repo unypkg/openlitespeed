@@ -254,11 +254,11 @@ ln -sf openlitespeed bin/litespeed
 echo "PIDFILE=/run/openlitespeed/openlitespeed.pid" >bin/lsws_env
 echo "GRACEFUL_PIDFILE=/run/openlitespeed/graceful.pid" >>bin/lsws_env
 
-rm -rfv logs admin/logs
-
 cd .. || exit
 
 cp -a dist/* "$SERVERROOT"
+
+rm -rfv "$SERVERROOT"/logs "$SERVERROOT"/admin/logs
 
 ln -s ../bin/ols_php "$SERVERROOT"/fcgi-bin/lsphp
 ln -s ../../bin/ols_php "$SERVERROOT"/admin/fcgi-bin/admin_php
