@@ -238,6 +238,8 @@ makedir autoupdate logs tmp/ocspcache admin/tmp admin/logs admin/fcgi-bin cached
 
 cp -a /sources/php-src/sapi/litespeed/php dist/bin/ols_php
 
+find admin/html.open -type f -exec sed -i -e 's|/tmp/lshttpd/lshttpd.pid|/run/openlitespeed/openlitespeed.pid|g' {} \;
+
 cd dist || exit
 
 sed -e "s/%ADMIN_PORT%/$OPENLSWS_ADMINPORT/" admin/conf/admin_config.conf.in >admin/conf/admin_config.conf
