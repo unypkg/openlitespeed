@@ -79,7 +79,7 @@ sed -e '/\[Install\]/a\' -e 'Alias=ols.service openlitespeed.service litespeed.s
 sed -e '/\[Service\]/a\' -e 'RuntimeDirectory=openlitespeed' -i /etc/systemd/system/uny-openlitespeed.service
 systemctl daemon-reload
 systemctl enable uny-openlitespeed
-systemctl start uny-openlitespeed
+systemctl restart uny-openlitespeed
 
 #############################################################################################
 ### End of script
