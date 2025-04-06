@@ -211,7 +211,7 @@ OPENLSWS_ADMINSSL=yes
 OPENLSWS_ADMINPORT=7080
 USE_LSPHP7=yes
 DEFAULT_TMP_DIR=/tmp/lshttpd
-PID_FILE=/tmp/lshttpd/lshttpd.pid
+PID_FILE=/run/openlitespeed/openlitespeed.pid
 OPENLSWS_EXAMPLEPORT=8088
 
 #You can set password here
