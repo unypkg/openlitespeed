@@ -39,6 +39,8 @@ if [[ ! -L logs ]]; then
     ln -sfvn /var/log/openlitespeed/admin/logs admin/logs
 fi
 
+mkdir -pv /var/www
+
 chgrp unyweb admin/tmp admin/cgid cgid
 chmod g+x admin/tmp admin/cgid cgid
 
