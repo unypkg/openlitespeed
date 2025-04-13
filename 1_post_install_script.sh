@@ -72,11 +72,8 @@ chmod -R 600 conf                                         #CONF_MOD
 #chmod 0600 admin/conf/jcryption_keypair
 
 cp -a admin/misc/lshttpd.service /etc/systemd/system/uny-openlitespeed.service
-sed "s|KillMode=none|KillMode=mixed|" -i /etc/systemd/system/uny-openlitespeed.service
-sed "s|PIDFile=/var/run/openlitespeed.pid|PIDFile=/run/openlitespeed/openlitespeed.pid|" -i /etc/systemd/system/uny-openlitespeed.service
 sed "s|.*Alias=.*||g" -i /etc/systemd/system/uny-openlitespeed.service
 sed -e '/\[Install\]/a\' -e 'Alias=ols.service openlitespeed.service litespeed.service httpd.service apache2.service' -i /etc/systemd/system/uny-openlitespeed.service
-sed -e '/\[Service\]/a\' -e 'RuntimeDirectory=openlitespeed' -i /etc/systemd/system/uny-openlitespeed.service
 systemctl daemon-reload
 systemctl enable uny-openlitespeed
 systemctl restart uny-openlitespeed

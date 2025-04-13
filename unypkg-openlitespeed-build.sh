@@ -145,6 +145,17 @@ sed -i -e "s/-nodefaultlibs //g" src/CMakeLists.txt
 sed -i -e "s/-nodefaultlibs libstdc++.a//g" src/modules/modsecurity-ls/CMakeLists.txt
 sed -i -e "s/-nodefaultlibs libstdc++.a//g" src/modules/lua/CMakeLists.txt
 
+sed "s|/var/run/openlitespeed.pid|/run/openlitespeed/openlitespeed.pid|g" -i src/main/lshttpdmain.cpp
+
+find . -type f -exec sed -i -e 's|/tmp/lshttpd|/run/openlitespeed|g' {} \;
+find dist/admin/html.open -type f -exec sed -i -e 's|lshttpd.pid|openlitespeed.pid|g' {} \;
+
+service_file="dist/admin/misc/lshttpd.service.in"
+sed "s|KillMode=none|KillMode=mixed|" -i "$service_file"
+sed "s|PIDFile=/var/run/openlitespeed.pid|PIDFile=/run/openlitespeed/openlitespeed.pid|" -i "$service_file"
+sed -e '/\[Service\]/a\' -e 'RuntimeDirectoryMode=777' -i "$service_file"
+sed -e '/\[Service\]/a\' -e 'RuntimeDirectory=openlitespeed' -i "$service_file"
+
 commentout ls_llmq.c src/lsr/CMakeLists.txt
 commentout ls_llxq.c src/lsr/CMakeLists.txt
 
@@ -210,7 +221,7 @@ OPENLSWS_EMAIL=root@localhost
 OPENLSWS_ADMINSSL=yes
 OPENLSWS_ADMINPORT=7080
 USE_LSPHP7=yes
-DEFAULT_TMP_DIR=/tmp/lshttpd
+DEFAULT_TMP_DIR=/run/openlitespeed
 PID_FILE=/run/openlitespeed/openlitespeed.pid
 OPENLSWS_EXAMPLEPORT=8088
 
@@ -237,8 +248,6 @@ function cpdir {
 makedir autoupdate logs tmp/ocspcache admin/tmp admin/logs admin/fcgi-bin cachedata gdata cgid admin/cgid/secret Example/logs Example/fcgi-bin
 
 cp -a /sources/php-src/sapi/litespeed/php dist/bin/ols_php
-
-find admin/html.open -type f -exec sed -i -e 's|/tmp/lshttpd/lshttpd.pid|/run/openlitespeed/openlitespeed.pid|g' {} \;
 
 cd dist || exit
 
