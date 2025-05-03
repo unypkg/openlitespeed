@@ -54,8 +54,8 @@ git_clone_source_repo
 
 cd "$pkgname" || exit
 
-wget -O dist/admin/html.open/lib/jCryption.php https://raw.githubusercontent.com/unysrc/openlitespeed/php-8-fixes/dist/admin/html.open/lib/jCryption.php
-wget -O dist/admin/misc/genjCryptionKeyPair.php https://raw.githubusercontent.com/unysrc/openlitespeed/php-8-fixes/dist/admin/misc/genjCryptionKeyPair.php
+#wget -O dist/admin/html.open/lib/jCryption.php https://raw.githubusercontent.com/unysrc/openlitespeed/php-8-fixes/dist/admin/html.open/lib/jCryption.php
+#wget -O dist/admin/misc/genjCryptionKeyPair.php https://raw.githubusercontent.com/unysrc/openlitespeed/php-8-fixes/dist/admin/misc/genjCryptionKeyPair.php
 
 if [ -e lsquic ]; then
     if ls src/ | grep liblsquic; then
